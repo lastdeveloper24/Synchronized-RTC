@@ -1,0 +1,86 @@
+#include <SoftwareSerial.h>
+#include <Wire.h>
+#include <TimeLib.h>
+#include <DS1307RTC.h>
+
+SoftwareSerial S(2,3);
+
+tmElements_t tm,tm1;
+
+void setup() {
+    Serial.begin(9600);
+    S.begin(9600);
+    pinMode(2,INPUT);
+    pinMode(3,OUTPUT);
+}
+
+void loop() {
+  if (RTC.read(tm)) 
+  {
+    Serial.print("Ok, Time = ");
+    print2digits(tm.Hour);
+    Serial.write(':');
+    print2digits(tm.Minute);
+    Serial.write(':');
+    print2digits(tm.Second);
+    Serial.print(", Date (D/M/Y) = ");
+    Serial.print(tm.Day);
+    Serial.write('/');
+    Serial.print(tm.Month);
+    Serial.write('/');
+    Serial.print(tmYearToCalendar(tm.Year));
+    Serial.println();
+  }
+  else 
+  {
+    if (RTC.chipPresent()) {
+      Serial.println("The DS1307 is stopped.  Please run the SetTime");
+      Serial.println("example to initialize the time and begin running.");
+      Serial.println();
+    }
+    else {
+      Serial.println("DS1307 read error!  Please check the circuitry.");
+      Serial.println();
+    }
+    delay(9000);
+  }
+//  if((tm.Hour==16)&&(tm.Minute==16))
+//  {
+    setrtc();
+//  }
+  delay(1000);
+}
+
+void setrtc()
+{
+    String f;
+    f = S.readString();
+    Serial.println(f);
+    String y = f.substring(0,4);
+    Serial.println(y);
+    String u = f.substring(5,7);
+    Serial.println(u);
+    String v = f.substring(8,10);
+    Serial.println(v);
+    String w = f.substring(11,13);
+    Serial.println(w);
+    String x = f.substring(14,16);
+    Serial.println(x);
+    String z = f.substring(17,19);
+    Serial.println(z);
+    tm1.Hour = w.toInt();
+    tm1.Minute = x.toInt();
+    tm1.Second = z.toInt();
+    tm1.Day = v.toInt();
+    tm1.Month = u.toInt();
+    tm1.Year = y.toInt()-1970;
+    RTC.write(tm1);
+}
+void print2digits(int number) 
+{
+  if (number >= 0 && number < 10) 
+  {
+    Serial.write('0');
+  }
+  Serial.print(number);
+}
